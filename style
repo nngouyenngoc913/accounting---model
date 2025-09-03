@@ -1,0 +1,67 @@
+var chartDom = document.getElementById('chart');
+var myChart = echarts.init(chartDom);
+var option;
+
+function node(name, color) {
+  return { name: name, itemStyle: { color: color } };
+}
+
+// Màu theo Color Accounting
+const COLOR_ASSET = '#4da6ff';
+const COLOR_LIAB = '#ff4d4d';
+const COLOR_EQUITY = '#ffd633';
+const COLOR_REVENUE = '#66cc66';
+const COLOR_EXPENSE = '#ff944d';
+const COLOR_RESULT = '#bfbfbf';
+
+option = {
+  tooltip: {
+    trigger: 'item',
+    triggerOn: 'mousemove'
+  },
+  series: [
+    {
+      type: 'tree',
+      data: [
+        {
+          name: 'Hệ thống TK - TT200 (Cấp 1)',
+          itemStyle: { color: '#000' },
+          children: [
+            node('Loại 1 - Tài sản ngắn hạn (111-159)', COLOR_ASSET),
+            node('Loại 2 - Tài sản dài hạn (211-299)', COLOR_ASSET),
+            node('Loại 3 - Nợ phải trả (311-399)', COLOR_LIAB),
+            node('Loại 4 - Vốn chủ sở hữu (411-499)', COLOR_EQUITY),
+            node('Loại 5 - Doanh thu (511-599)', COLOR_REVENUE),
+            node('Loại 6 - Chi phí SXKD (611-699)', COLOR_EXPENSE),
+            node('Loại 7 - Thu nhập khác (711-799)', COLOR_REVENUE),
+            node('Loại 8 - Chi phí khác (811-899)', COLOR_EXPENSE),
+            node('Loại 9 - Xác định KQKD (911)', COLOR_RESULT)
+          ]
+        }
+      ],
+      top: '1%',
+      left: '10%',
+      bottom: '1%',
+      right: '20%',
+      symbolSize: 14,
+      label: {
+        position: 'left',
+        verticalAlign: 'middle',
+        align: 'right',
+        fontSize: 14
+      },
+      leaves: {
+        label: {
+          position: 'right',
+          verticalAlign: 'middle',
+          align: 'left'
+        }
+      },
+      expandAndCollapse: true,
+      animationDuration: 550,
+      animationDurationUpdate: 750
+    }
+  ]
+};
+
+myChart.setOption(option);
