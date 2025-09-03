@@ -1,0 +1,883 @@
+// Clear all transactions
+        function clearAllTransactions() {
+            if (transactions.length === 0) {
+                alert('Không có giao dịch nào để xóa!');
+                return;
+            }
+            
+            if (confirm('Bạn có chắc chắn muốn xóa tất cả giao dịch? Hành động này không thể hoàn tác.')) {
+                transactions = [];
+                totalDebits = 0;
+                totalCredits = 0;
+                
+                displayJournalEntries();
+                updateBalanceDisplay();
+                updateEquationDisplay();
+                updateQuickStats();
+                
+                alert('Đã xóa tất cả giao dịch thành công!');
+            }
+        }
+
+        // Update quick stats
+        function updateQuickStats() {
+            document.getElementById('totalTransactions').textContent = transactions.length;
+            const isBalanced = Math.abs(totalDebits - totalCredits) < 0.01;
+            document.getElementById('balanceStatusMini').textContent = isBalanced ? 'Cân đối' : 'Lệch';
+        }
+
+        // Update all displays (enhanced)
+        function updateAllDisplays() {
+            displayJournalEntries();
+            updateBalanceDisplay();
+            updateEquationDisplay();
+            updateQuickStats();
+        }
+
+        // Enhanced add transaction function
+        function addTransaction() {
+            const date = document.getElementById('transactionDate').value;
+            const amount = parseFloat(document.getElementById('transactionAmount').value);
+            const description = document.getElementById('transactionDesc').value.trim();
+
+            if (!selectedDebit || !selectedCredit || !amount || !description) {
+                alert('Vui lòng điền đầy đủ thông tin giao dịch!');
+                return;
+            }
+
+            if (selectedDebit.code === selectedCredit.code) {
+                alert('Tài khoản Nợ và Có phải khác nhau!');
+                return;
+            }
+
+            // Create transaction
+            const transaction = {
+                id: Date.now(),
+                date: date,
+                description: description,
+                debitAccount: selectedDebit,
+                creditAccount: selectedCredit,
+                amount: amount,
+                type: currentTransactionType || 'custom'
+            };
+
+            // Add to transactions array
+            transactions.push(transaction);
+
+            // Update totals
+            totalDebits += amount;
+            totalCredits += amount;
+
+            // Update all displays
+            updateAllDisplays();
+
+            // Clear form
+            clearForm();
+            
+            // Show success message
+            const successMsg = document.createElement('div');
+            successMsg.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+                color: white;
+                padding: 15px 25px;
+                border-radius: 8px;
+                box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+                z-index: 1000;
+                font-weight: bold;
+                animation: slideIn 0.5s ease;
+            `;
+            successMsg.textContent = '✅ Giao dịch đã được ghi sổ thành công!';
+            document.body.appendChild(successMsg);
+            
+            setTimeout(() => {
+                successMsg.remove();
+            }, 3000);
+        }
+
+        // Enhanced display journal entries
+        function displayJournalEntries() {
+            const container = document.querySelector('.journal-panel .journal-entries .entry-list');
+            
+            if (transactions.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div style="font-size: 2rem; margin-bottom: 10px;">📝</div>
+                        <div>Chưa có giao dịch nào</div>
+                        <div style="font-size: 0.8rem; margin-top: 8px; color: #999;">
+                            Thêm giao dịch đầu tiên để bắt đầu ghi sổ
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            
+            // Sort transactions by date (newest first)
+            const sortedTransactions = [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            sortedTransactions.<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ thống Kế toán Việt Nam - Thông tư 200/2014/TT-BTC</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            padding: 10px;
+        }
+
+        .app-container {
+            max-width: 1800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .equation-display {
+            background: rgba(255,255,255,0.1);
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: 2px solid rgba(255,255,255,0.2);
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr 350px;
+            min-height: 85vh;
+        }
+
+        /* Chart of Accounts Sidebar */
+        .chart-sidebar {
+            background: #f8f9fa;
+            border-right: 1px solid #dee2e6;
+            overflow-y: auto;
+            max-height: 85vh;
+        }
+
+        .sidebar-header {
+            background: #495057;
+            color: white;
+            padding: 15px;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .account-group {
+            margin-bottom: 2px;
+        }
+
+        .group-header {
+            padding: 12px 15px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.85rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+
+        .group-header:hover {
+            background: rgba(0,0,0,0.05);
+        }
+
+        .group-accounts {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            background: white;
+        }
+
+        .group-accounts.expanded {
+            max-height: 400px;
+        }
+
+        .account-item {
+            padding: 8px 15px 8px 30px;
+            cursor: pointer;
+            border-bottom: 1px solid #f1f1f1;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+        }
+
+        .account-item:hover {
+            background: #e3f2fd;
+            padding-left: 35px;
+        }
+
+        .account-code {
+            font-weight: bold;
+            font-family: monospace;
+            color: #495057;
+        }
+
+        /* Color coding for account types */
+        .assets .group-header { background: #28a745; color: white; }
+        .assets .account-item:hover { background: #d4edda; }
+
+        .liabilities .group-header { background: #dc3545; color: white; }
+        .liabilities .account-item:hover { background: #f8d7da; }
+
+        .equity .group-header { background: #6f42c1; color: white; }
+        .equity .account-item:hover { background: #e2d9f3; }
+
+        .revenue .group-header { background: #007bff; color: white; }
+        .revenue .account-item:hover { background: #cce7ff; }
+
+        .expenses .group-header { background: #fd7e14; color: white; }
+        .expenses .account-item:hover { background: #fde2cc; }
+
+        /* Transaction Input Panel */
+        .transaction-panel {
+            padding: 25px;
+            background: linear-gradient(145deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+
+        .transaction-form {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+        }
+
+        .form-title {
+            color: #2c3e50;
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: bold;
+            color: #495057;
+            font-size: 0.9rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+        }
+
+        .transaction-type-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .transaction-type {
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+            font-size: 0.85rem;
+        }
+
+        .transaction-type.active {
+            border-color: #007bff;
+            background: #e3f2fd;
+            font-weight: bold;
+        }
+
+        .transaction-type:hover {
+            border-color: #007bff;
+        }
+
+        .entry-display {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+            min-height: 120px;
+        }
+
+        .debit-side, .credit-side {
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid;
+            background: white;
+        }
+
+        .debit-side {
+            border-color: #28a745;
+            background: linear-gradient(145deg, #f8fff9 0%, #e8f5e8 100%);
+        }
+
+        .credit-side {
+            border-color: #dc3545;
+            background: linear-gradient(145deg, #fff8f8 0%, #f5e8e8 100%);
+        }
+
+        .side-header {
+            font-weight: bold;
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 4px;
+            text-align: center;
+            color: white;
+            font-size: 0.9rem;
+        }
+
+        .debit-header {
+            background: #28a745;
+        }
+
+        .credit-header {
+            background: #dc3545;
+        }
+
+        .account-display {
+            min-height: 80px;
+            padding: 12px;
+            border: 2px dashed #ccc;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .account-display.filled {
+            border-style: solid;
+            background: white;
+            color: #333;
+            font-weight: bold;
+            flex-direction: column;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: bold;
+            width: 100%;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(0,123,255,0.3);
+        }
+
+        .btn-primary:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Journal Entries Display */
+        .journal-panel {
+            background: #f8f9fa;
+            border-left: 1px solid #dee2e6;
+            padding: 20px;
+            overflow-y: auto;
+            max-height: 85vh;
+        }
+
+        .panel-header {
+            color: #495057;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .journal-entries {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .journal-entry {
+            padding: 15px;
+            border-bottom: 1px solid #f1f1f1;
+            transition: background 0.3s ease;
+        }
+
+        .journal-entry:hover {
+            background: #f8f9fa;
+        }
+
+        .entry-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .entry-date {
+            font-weight: bold;
+            color: #495057;
+            font-size: 0.9rem;
+        }
+
+        .entry-amount {
+            font-weight: bold;
+            color: #007bff;
+            font-size: 1.1rem;
+        }
+
+        .entry-description {
+            color: #6c757d;
+            font-style: italic;
+            margin-bottom: 10px;
+            font-size: 0.85rem;
+        }
+
+        .entry-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .debit-entry, .credit-entry {
+            padding: 8px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .debit-entry {
+            background: #d4edda;
+            border-left: 3px solid #28a745;
+            color: #155724;
+        }
+
+        .credit-entry {
+            background: #f8d7da;
+            border-left: 3px solid #dc3545;
+            color: #721c24;
+        }
+
+        /* Balance Summary */
+        .balance-summary {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .balance-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .balance-item {
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+
+        .total-debits {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .total-credits {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .balance-status {
+            padding: 12px;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        .balanced {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .unbalanced {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #6c757d;
+            padding: 40px 20px;
+        }
+
+        .toggle-icon {
+            transition: transform 0.3s ease;
+        }
+
+        .toggle-icon.rotated {
+            transform: rotate(180deg);
+        }
+
+        @media (max-width: 1200px) {
+            .main-layout {
+                grid-template-columns: 250px 1fr 300px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto auto;
+            }
+            
+            .header {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .chart-sidebar, .journal-panel {
+                max-height: 300px;
+            }
+            
+            .entry-display {
+                grid-template-columns: 1fr;
+            }
+            
+            .balance-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="header">
+            <div>
+                <h1>🏛️ Hệ thống Kế toán Việt Nam</h1>
+                <p style="margin: 5px 0 0 0; opacity: 0.9;">Thông tư 200/2014/TT-BTC - Ghi sổ kép tương tác</p>
+            </div>
+            <div class="equation-display">
+                <div>TỔNG NỢ = TỔNG CÓ</div>
+                <div style="font-size: 0.9rem; margin-top: 5px;">
+                    <span id="totalDebits">0</span> = <span id="totalCredits">0</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-layout">
+            <!-- Chart of Accounts -->
+            <div class="chart-sidebar">
+                <div class="sidebar-header">
+                    📚 DANH MỤC TÀI KHOẢN
+                </div>
+
+                <!-- Assets -->
+                <div class="account-group assets">
+                    <div class="group-header" onclick="toggleGroup('assets')">
+                        <span>💰 TÀI SẢN (100-299)</span>
+                        <span class="toggle-icon">▼</span>
+                    </div>
+                    <div class="group-accounts" id="assets">
+                        <div class="account-item" onclick="selectAccount('111', 'Tiền mặt', 'assets')">
+                            <span>Tiền mặt</span>
+                            <span class="account-code">111</span>
+                        </div>
+                        <div class="account-item" onclick="selectAccount('112', 'Tiền gửi ngân hàng', 'assets')">
+                            <span>Tiền gửi ngân hàng</span>
+                            <span class="account-code">112</span>
+                        </div>
+                        <div class="account-item" onclick="selectAccount('113', 'Tiền đang chuyển', 'assets')">
+                            <span>Tiền đang chuyển</span>
+                            <span class="account-code">113</span>
+                        </div>
+                        <div class="account-item" onclick="selectAccount('121', 'Chứng khoán kinh doanh', 'assets')">
+                            <span>Chứng khoán kinh doanh</span>
+                            <span class="account-code">121</span>
+                        </div>
+                        <div class="account-item" onclick="selectAccount('128', 'Đầu tư nắm giữ đến ngày đáo hạn', 'assets')">
+                            <span>ĐT nắm giữ đến đáo hạn</span>
+                            <span class="account-code">128</span>
+                        </div>
+                        <div class="account-item" onclick="selectAccount('131', 'Phải thu khách hàng', 'assets')">
+                            <span>Phải thu khách hàng</span>
+                            <span class="account-code">131</span>
+                        </div>
+                        <div class="account-item" onclick="selectAccount('133', 'Thuế GTGT được khấu trừ', 'assets')">
+                            <span>Thuế GTGT được khấu trừ</span>
+                            <span class="account-code">133</span>
+                        </div>
+                        <div class="account-item" onclick="selectAccount('136', 'Phải thu nội bộ', 'assets')">
+                            <span>Phải thu nội bộ</span>
+                            <span class="account-code">136</span>
+                        </div>
+                        <div class="account-item" onclick="selectAccount('138', 'Phải thu khác', 'assets')">
+                            <span>Phải thu khác</span>
+                            <span class="account-code">138</span>
+                        </div>
+                        <div class="account-item" onclick="selectAccount('141', 'Tạm ứng', 'assets')">
+                            <span>Tạm ứng</span>
+                            <span class="account-code">141</span>
+                        </div>
+                        <div class="account-item" onclick="selectAccount('152', 'Nguyên liệu, vật liệu', 'assets')">
+                            <span>Nguyên liệu, vật liệu</span>
+                            <span class="account-code">152</span>
+                        </div>
+                        <div class="account-item" onclick="selectAccount('153', 'Công cụ, dụng cụ', 'assets')">
+                            <span>Công cụ, dụng cụ</span>
+                            <span class="account-code">153</span>
+                        </div>
+                        <div class="account-item" onclick="selectAccount('154', 'Chi phí sản xuất kinh doanh dở dang', 'assets')">
+                            <span>Chi phí SXKD dở dang</span>
+                            <span class="account-code">154</span>
+                        </div>
+                        <div class="account-item" onclick="selectAccount('211', 'Tài sản cố định hữu hình', 'assets')">
+                            <span>TSCĐ hữu hình</span>
+                            <span class="account-code">211</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Liabilities -->
+                <div class="account-group liabilities">
+                    <div class="group-header" onclick="toggleGroup('liabilities')">
+                        <span>💳 NỢ PHẢI TRẢ (300-399)</span>
+                        <span class="toggle-icon">▼</span>
+                    </div>
+                    <div class="group-accounts" id="liabilities">
+                        <div class="account-item" onclick="selectAccount('331', 'Phải trả người bán', 'liabilities')">
+                            <span>Phải trả người bán</span>
+                            <span class="account-code">331</span>
+                        </div>
+                        <div class="account-item" onclick="selectAccount('333', 'Thuế và các khoản phải nộp Nhà nước', 'liabilities')">
+                            <span>Thuế phải nộp</span>
+                            <span class="account-code">333</span>
+                        </div>
+                        <div class="account-item" onclick="selectAccount('334', 'Phải trả người lao động', 'liabilities')">
+                            <span>Phải trả người lao động</span>
+                            <span class="account-code">334</span>
+                        </div>
+                        <div class="account-item" onclick="selectAccount('338', 'Phải trả phải nộp khác', 'liabilities')">
+                            <span>Phải trả khác</span>
+                            <span class="account-code">338</span>
+                        </div>
+                        <div class="account-item" onclick="selectAccount('341', 'Vay và nợ thuê tài chính', 'liabilities')">
+                            <span>Vay và nợ thuê TC</span>
+                            <span class="account-code">341</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Equity -->
+                <div class="account-group equity">
+                    <div class="group-header" onclick="toggleGroup('equity')">
+                        <span>🏦 VỐN CHỦ SỞ HỮU (400-499)</span>
+                        <span class="toggle-icon">▼</span>
+                    </div>
+                    <div class="group-accounts" id="equity">
+                        <div class="account-item" onclick="selectAccount('411', 'Vốn đầu tư của chủ sở hữu', 'equity')">
+                            <span>Vốn chủ sở hữu</span>
+                            <span class="account-code">411</span>
+                        </div>
+                        <div class="account-item" onclick="selectAccount('413', 'Chênh lệch tỷ giá hối đoái', 'equity')">
+                            <span>Chênh lệch tỷ giá</span>
+                            <span class="account-code">413</span>
+                        </div>
+                        <div class="account-item" onclick="selectAccount('421', 'Lợi nhuận sau thuế chưa phân phối', 'equity')">
+                            <span>Lợi nhuận sau thuế</span>
+                            <span class="account-code">421</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Revenue -->
+                <div class="account-group revenue">
+                    <div class="group-header" onclick="toggleGroup('revenue')">
+                        <span>📈 DOANH THU (500-599)</span>
+                        <span class="toggle-icon">▼</span>
+                    </div>
+                    <div class="group-accounts" id="revenue">
+                        <div class="account-item" onclick="selectAccount('511', 'Doanh thu bán hàng và cung cấp dịch vụ', 'revenue')">
+                            <span>Doanh thu bán hàng</span>
+                            <span class="account-code">511</span>
+                        </div>
+                        <div class="account-item" onclick="selectAccount('515', 'Doanh thu hoạt động tài chính', 'revenue')">
+                            <span>Doanh thu hoạt động TC</span>
+                            <span class="account-code">515</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Expenses -->
+                <div class="account-group expenses">
+                    <div class="group-header" onclick="toggleGroup('expenses')">
+                        <span>📉 CHI PHÍ (600-699)</span>
+                        <span class="toggle-icon">▼</span>
+                    </div>
+                    <div class="group-accounts" id="expenses">
+                        <div class="account-item" onclick="selectAccount('611', 'Giá vốn hàng bán', 'expenses')">
+                            <span>Giá vốn hàng bán</span>
+                            <span class="account-code">611</span>
+                        </div>
+                        <div class="account-item" onclick="selectAccount('621', 'Chi phí nguyên liệu vật liệu trực tiếp', 'expenses')">
+                            <span>CP nguyên vật liệu TT</span>
+                            <span class="account-code">621</span>
+                        </div>
+                        <div class="account-item" onclick="selectAccount('622', 'Chi phí nhân công trực tiếp', 'expenses')">
+                            <span>Chi phí nhân công TT</span>
+                            <span class="account-code">622</span>
+                        </div>
+                        <div class="account-item" onclick="selectAccount('627', 'Chi phí sản xuất chung', 'expenses')">
+                            <span>Chi phí sản xuất chung</span>
+                            <span class="account-code">627</span>
+                        </div>
+                        <div class="account-item" onclick="selectAccount('635', 'Chi phí tài chính', 'expenses')">
+                            <span>Chi phí tài chính</span>
+                            <span class="account-code">635</span>
+                        </div>
+                        <div class="account-item" onclick="selectAccount('641', 'Chi phí bán hàng', 'expenses')">
+                            <span>Chi phí bán hàng</span>
+                            <span class="account-code">641</span>
+                        </div>
+                        <div class="account-item" onclick="selectAccount('642', 'Chi phí quản lý doanh nghiệp', 'expenses')">
+                            <span>Chi phí quản lý DN</span>
+                            <span class="account-code">642</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transaction Input Panel -->
+            <div class="transaction-panel">
+                <div class="transaction-form">
+                    <div class="form-title">📝 NHẬP GIAO DỊCH KẾ TOÁN</div>
+                    
+                    <div class="form-group">
+                        <label for="transactionDate">Ngày giao dịch:</label>
+                        <input type="date" id="transactionDate" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="transactionAmount">Số tiền (VND):</label>
+                        <input type="number" id="transactionAmount" class="form-control" 
+                               placeholder="Nhập số tiền..." min="0" step="1000" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="transactionDesc">Diễn giải:</label>
+                        <textarea id="transactionDesc" class="form-control" rows="2" 
+                                placeholder="Mô tả giao dịch..." required></textarea>
+                    </div>
+
+                    <div class="transaction-type-selector">
+                        <div class="transaction-type" onclick="selectTransactionType('cash_sale')">
+                            💰 Bán hàng thu tiền mặt
+                        </div>
+                        <div class="transaction-type" onclick="selectTransactionType('credit_sale')">
+                            📄 Bán hàng chưa thu tiền
+                        </div>
+                        <div class="transaction-type" onclick="selectTransactionType('purchase_cash')">
+                            🛒 Mua hàng trả tiền mặt
+                        </div>
+                        <div class="transaction-type" onclick="selectTransactionType('purchase_credit')">
+                            📋 Mua hàng chưa trả tiền
+                        </div>
+                        <div class="transaction-type" onclick="selectTransactionType('owner_investment')">
+                            🏛️ Chủ sở hữu đầu tư vốn
+                        </div>
+                        <div class="transaction-type" onclick="selectTransactionType('custom')">
+                            ⚙️ Tự định nghĩa
+                        </div>
+                    </div>
+
+                    <div class="entry-display">
+                        <div class="debit-side">
+                            <div class="side-header debit-header">
+                                📈 BÊN NỢ (DEBIT)
+                            </div>
+                            <div class="account-display" id="debitDisplay">
+                                <div>Chọn tài khoản ghi Nợ</div>
+                            </div>
+                        </div>
+                        
+                        <div class="credit-side">
+                            <div class="side-header credit-header">
+                                📉 BÊN CÓ (CREDIT)
+                            </div>
+                            <div class="account-display" id="creditDisplay">
+                                <div>Chọn tài khoản ghi Có</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="btn-primary" id="addTransactionBtn" onclick="addTransaction()" disabled>
+                        ➕ Ghi sổ giao dịch
+                    </button>
+                </div>
+
+                <!-- Journal Entries
